@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using GPS_MOD;
+using MelonLoader;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -34,3 +36,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: MelonInfo(typeof(Class1), "GPS Mod", "1.3.3.7", "Zordon1337")]
+[assembly: MelonGame("Cheesecake Dev", "Streamer Life Simulator")]
