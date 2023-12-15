@@ -9,9 +9,9 @@ namespace GPS_MOD
 {
     internal class SDK
     {
-        public static CarManager carManager => UnityEngine.Object.FindObjectOfType<CarManager>();
-        public static PlayerController playerController => UnityEngine.Object.FindObjectOfType<PlayerController>();
-        public static PlayerCamera PlayerCamera => UnityEngine.Object.FindObjectOfType<PlayerCamera>();
+        public static CarManager carManager = null;
+        public static PlayerController playerController = null;
+        public static PlayerCamera PlayerCamera = null;
         public static Camera MainCamera => UnityEngine.Camera.main;
         public static bool IsInGame => CarManager.Instance != null;
         public static GameObject BeginnerCar => carManager.dadyCar;

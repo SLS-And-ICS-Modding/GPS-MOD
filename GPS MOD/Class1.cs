@@ -11,25 +11,7 @@ namespace GPS_MOD
 {
     public class Class1:MelonMod
     {
-        public static Texture2D lineTex;
-        KeyCode MENU_KEY = KeyCode.Insert;
-        bool bMenu = false;
-        string curdest = "";
-        bool UseNav = false;
-        
-        public override void OnApplicationStart()
-        {
-            
-        }
-        public override void OnApplicationQuit()
-        {
-            
-        }
-        public override void OnGUI()
-        {
-            if (SDK.carManager == null)
-                return;
-            Dictionary<string, Vector3> ItemPos = new Dictionary<string, Vector3>
+        Dictionary<string, Vector3> ItemPos = new Dictionary<string, Vector3>
             {
                         {"House 1", new Vector3(1304.0f, 29.4f, 1851.1f)},
                         {"House 2", new Vector3(961.4f, 20.9f, 955.2f)},
@@ -49,14 +31,41 @@ namespace GPS_MOD
                         {"Pet Shop (Cats)", new Vector3(1310.3f, 28.3f, 1811.9f)},
                         {"Dealer Guy", new Vector3(1346.5f, 28.5f, 1803.4f)},
                         {"Mosi House", new Vector3(1328.7f, 22.8f, 849.0f)},
-                        {"Dady Car(this is how dev called it)(starter car)", SDK.BeginnerCar.transform.position },
+                        /*{"Dady Car(this is how dev called it)(starter car)", SDK.BeginnerCar.transform.position },
                         {"Japanese Car", SDK.JapaneseCar.transform.position },
-                        { "Van", SDK.VanCar.transform.position},
+                        { "Van", SDK.VanCar.transform.position},  temporary removed due to crashing mod on load
                         { "Suv", SDK.SuvCar.transform.position},
-                        {" Porsche", SDK.PorscheCar.transform.position },
+                        {" Porsche", SDK.PorscheCar.transform.position },*/
                         { "Gas Station 1", new Vector3(722.7f, 22.2f, 522.7f) },
                         { "Gas Station 2", new Vector3(434.8f, 19.0f, 1158.9f)}
             };
+        public static Texture2D lineTex;
+        KeyCode MENU_KEY = KeyCode.Insert;
+        bool bMenu = false;
+        string curdest = "";
+        bool UseNav = false;
+        GameObject lineObject = new GameObject("LineObject");
+        LineRenderer lineRenderer = null; // im unsure if it works(at least when im making this)
+        static int CallsOnGUI = 0;
+        static int CallsOnUpdate = 0;
+        public override void OnApplicationStart()
+        {
+            lineRenderer = lineObject.AddComponent<LineRenderer>();
+            lineRenderer.material = new Material(Shader.Find("Standard"));
+            lineRenderer.startColor = Color.red;
+            lineRenderer.endColor = Color.blue;
+            lineRenderer.startWidth = 0.1f;
+            lineRenderer.endWidth = 0.1f;
+        }
+        public override void OnApplicationQuit()
+        {
+            
+        }
+        public override void OnGUI()
+        {
+            if (SDK.carManager == null)
+                return;
+            
             if (bMenu)
             {
                 
@@ -71,27 +80,29 @@ namespace GPS_MOD
             }
             if(UseNav == true && curdest != "")
             {
-                Vector3 w2s = SDK.MainCamera.WorldToScreenPoint(FindPosByString(curdest,ItemPos));
+
                 // drawing line
-                Matrix4x4 matrix = GUI.matrix;
-                Vector2 pointA = new Vector2(Screen.width / 2, Screen.height);
-                Vector2 pointB = new Vector2(w2s.x, Screen.height - w2s.y);
-                Color color = Color.red;
-                if (!lineTex)
-                    lineTex = new Texture2D(1, 1);
+                // doing some timeout to not make 2 milions calls per sec, we don't want to fry our cpu(at least me)
+                if (CallsOnGUI >= 200)
+                {
+                    Vector3 w2s = SDK.MainCamera.WorldToScreenPoint(FindPosByString(curdest, ItemPos));
+                    CallsOnGUI = 0;
+                    Vector3[] positions = new Vector3[2];
+                    positions[0] = new Vector2(Screen.width / 2, Screen.height);
+                    positions[1] = new Vector2(w2s.x, Screen.height - w2s.y);
+                    lineRenderer.positionCount = positions.Length;
+                    lineRenderer.SetPositions(positions);
+                }
+                else
+                {
+                    CallsOnGUI++;
+                }
 
-                Color color2 = GUI.color;
-                GUI.color = color;
-                float num = Vector3.Angle(pointB - pointA, Vector2.right);
 
-                if (pointA.y > pointB.y)
-                    num = -num;
 
-                GUIUtility.ScaleAroundPivot(new Vector2((pointB - pointA).magnitude, 1f), new Vector2(pointA.x, pointA.y + 0.5f));
-                GUIUtility.RotateAroundPivot(num, pointA);
-                GUI.DrawTexture(new Rect(pointA.x, pointA.y, 1f, 1f), lineTex);
-                GUI.matrix = matrix;
-                GUI.color = color2;
+
+
+
             }
         }
         public Vector3 FindPosByString(string name, Dictionary<string, Vector3> dict)
@@ -113,6 +124,21 @@ namespace GPS_MOD
             {
                 bMenu = !bMenu;
             }
+            // doing this also to not turn our toaster into an chernobyl reactor
+            if(CallsOnUpdate >= 200)
+            {
+                if(SDK.IsInGame)
+                {
+                    SDK.carManager = UnityEngine.Object.FindObjectOfType<CarManager>();
+                    SDK.playerController = UnityEngine.Object.FindObjectOfType<PlayerController>();
+                    SDK.PlayerCamera = UnityEngine.Object.FindObjectOfType<PlayerCamera>();
+                }
+                CallsOnUpdate = 0;
+            } else
+            {
+                CallsOnUpdate++;
+            }
+                
         }
     }
 }
